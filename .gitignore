@@ -1,6 +1,11 @@
 # Emacs temporary files #
 #########################
 *~
+\#*#
+
+# Python generated files #
+##########################
+*.py[cod]
 
 # Compiled source #
 ###################
