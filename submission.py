@@ -146,6 +146,10 @@ def learnWeightsFromPerceptron(trainExamples, featureExtractor, labels, iters = 
     return weights
     # END_YOUR_CODE
 
+def sanitize(x):
+    # TODO: think of other sanitization steps?
+    return x.lower()
+
 def extractBigramFeatures(x):
     """
     Extract unigram + bigram features for a text document $x$. 
@@ -158,9 +162,10 @@ def extractBigramFeatures(x):
     stopwords = f.read()
     f.close()
     stopset = set(stopwords.split())
+    x = x.replace('.', ' . ').replace('?', ' ? ').replace('!', ' ! ')
     words = x.split()
     retval = defaultdict(int)
-    words = [word for word in words if word not in stopset]
+    words = [sanitize(word) for word in words if word not in stopset]
     for word in words:
         retval[word] += 1
     for i in range(0, len(words)):
