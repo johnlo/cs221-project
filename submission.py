@@ -172,7 +172,6 @@ def extractBigramFeatures(x):
         else:
             bigram = words[i-1] + ' ' + words[i]
         retval[bigram] += 1
-        #print retval
     return retval
     # END_YOUR_CODE
 

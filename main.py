@@ -4,7 +4,7 @@ import util, submission
 
 # Main entry point to test your spam classifier.
 
-TRAIN_PATH_TOPICS = 'tmp2'
+TRAIN_PATH_TOPICS = './tmp/mainonly'
 
 def evaluateClassifier(trainExamples, devExamples, classifier):
     util.printConfusionMatrix(

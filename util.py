@@ -100,10 +100,8 @@ def computeErrorRate(examples, classifier):
     poem_to_moods = defaultdict(list)
     for x, y in examples:
         poem_to_moods[x].append(y)
-    print poem_to_moods
     for x, y in examples:
         y_classify = classifier.classifyWithLabel(x)
-        print (y_classify, poem_to_moods[x])
         containsMood = False
         for mood in poem_to_moods[x]:
             if y_classify == mood:
