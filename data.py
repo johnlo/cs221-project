@@ -21,11 +21,11 @@ def main():
         mood = mood1 + '\n' + submood1 + '\n' + mood2 + '\n' + submood2 + '\n'
         name = (string.lower(title).replace(' ', '_') + '_by_' +
                 string.lower(author).replace(' ', '_'))
-        os.mkdir(name)
-        f = open(name + '/text', 'w')
+        os.mkdir('data/' + name)
+        f = open('data/' + name + '/text', 'w')
         f.write(text)
         f.close()
-        f = open(name + '/mood', 'w')
+        f = open('data/' + name + '/mood', 'w')
         f.write(mood)
         f.close
 
