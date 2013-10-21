@@ -159,13 +159,11 @@ def extractBigramFeatures(x):
     """
     # BEGIN_YOUR_CODE (around 6 lines of code expected)
     f = open("stopwords.txt", "r")
-    stopwords = f.read()
+    stopwords = set(f.read().split())
     f.close()
-    stopset = set(stopwords.split())
     x = x.replace('.', ' . ').replace('?', ' ? ').replace('!', ' ! ')
-    words = x.split()
+    words = [sanitize(word) for word in x.split() if word not in stopwords]
     retval = defaultdict(int)
-    words = [sanitize(word) for word in words if word not in stopset]
     for word in words:
         retval[word] += 1
     for i in range(0, len(words)):
