@@ -1,5 +1,4 @@
 import operator
-import util
 from collections import Counter, defaultdict
 
 class Classifier(object):

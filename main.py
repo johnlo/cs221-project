@@ -129,11 +129,13 @@ def classify(args):
         dev_errors += e
         dev_examples += n
     print ""
-    print "trainScore:", printPercentage(train_score, train_possible)
-    print "trainError:", printPercentage(train_errors, train_examples)
+    print "Score"
+    print "train:", printPercentage(train_score, train_possible)
+    print "dev:", printPercentage(dev_score, dev_possible)
     print ""
-    print "devScore:", printPercentage(dev_score, dev_possible)
-    print "devError:", printPercentage(dev_errors, dev_examples)
+    print "Error Rate"
+    print "train:", printPercentage(train_errors, train_examples)
+    print "dev:", printPercentage(dev_errors, dev_examples)
 
 def main():
     import argparse
