@@ -1,6 +1,8 @@
 import operator
 from collections import Counter, defaultdict
 import nltk
+from stemming.porter2 import stem
+from nltk.corpus import wordnet
 
 class Classifier(object):
     def __init__(self, labels):
@@ -164,6 +166,7 @@ class PoetryClassifier(OneVsAllClassifier):
 	super(PoetryClassifier, self).__init__(labels, classifiers)
 
 cached_tags = {}
+cached_stems = {}
 
 def extractBigramFeatures(x):
     """
@@ -180,16 +183,26 @@ def extractBigramFeatures(x):
     retval = defaultdict(int)
     words = [word for word in x.split() if word not in stopwords]
     if x in cached_tags:
-	tagged = cached_tags[x]
+	   tagged = cached_tags[x]
     else:
-	tagged = nltk.pos_tag(words)
-	cached_tags[x] = tagged
+        tagged = nltk.pos_tag(words)
+        cached_tags[x] = tagged
     tagcount = defaultdict(int)
     for word, tag in tagged:
-	retval[word] += 1
-	retval[tag] += 1
+        #retval[word] += 1
+        retval[tag] += 1
+        if word in cached_stems:
+            if cached_stems[word]:
+                retval[cached_stems[word]] += 1
+        else:
+            wordstem = stem(word)
+            if wordnet.synsets(wordstem):
+                retval[wordstem] += 1
+                cached_stems[word] = wordstem
+            else:
+                cached_stems[word] = None
     for tag in tagcount:
-	retval[tag] = float(tagcount[tag])/len(tagged)
+	   retval[tag] = float(tagcount[tag])/len(tagged)
     for i in range(0, len(words)):
 	if (i == 0 or
 	    words[i-1].endswith('.') or
