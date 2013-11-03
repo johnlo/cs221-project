@@ -1,8 +1,8 @@
-import operator
 from collections import Counter, defaultdict
-import nltk
-from stemming.porter2 import stem
 from nltk.corpus import wordnet
+from stemming.porter2 import stem
+import nltk
+import operator
 
 class Classifier(object):
     def __init__(self, labels):
@@ -167,6 +167,29 @@ class PoetryClassifier(OneVsAllClassifier):
 
 cached_tags = {}
 cached_stems = {}
+cached_rhyme_scores = {}
+
+def rhymes(w1, w2):
+    l = min(len(w1), len(w2))
+    w1 = w1[len(w1)-l:]
+    w2 = w2[len(w2)-l:]
+    hammingDist = sum(ch1 != ch2 for ch1, ch2 in zip(w1, w2))
+    return (float(hammingDist)/l < .25)
+
+def getRhymeScore(x):
+    x.replace(',', '').replace(':', '').replace(';', '')
+    lines = x.split('\n')
+    lastWords = []
+    for line in lines:
+	words = [word for word in line.split() if len(word) >= 3]
+        if len(words) > 0:
+            lastWords.append(words[len(words)-1])
+    count = 0
+    for i in xrange(len(lastWords)):
+        for j in xrange(i+1, len(lastWords)):
+            if rhymes(lastWords[i], lastWords[j]):
+                count += 1
+    return float(count)/len(lastWords)
 
 def extractBigramFeatures(x):
     """
@@ -181,26 +204,28 @@ def extractBigramFeatures(x):
     x = x.lower()
     x = x.replace('.', ' . ').replace('?', ' ? ').replace('!', ' ! ')
     retval = defaultdict(int)
+    if x not in cached_rhyme_scores:
+        cached_rhyme_scores[x] = getRhymeScore(x)
+    retval['--RHYME--'] = cached_rhyme_scores[x]
     words = [word for word in x.split() if word not in stopwords]
     if x in cached_tags:
 	   tagged = cached_tags[x]
     else:
-        tagged = nltk.pos_tag(words)
-        cached_tags[x] = tagged
+	tagged = nltk.pos_tag(words)
+	cached_tags[x] = tagged
     tagcount = defaultdict(int)
     for word, tag in tagged:
-        #retval[word] += 1
-        retval[tag] += 1
-        if word in cached_stems:
-            if cached_stems[word]:
-                retval[cached_stems[word]] += 1
-        else:
-            wordstem = stem(word)
-            if wordnet.synsets(wordstem):
-                retval[wordstem] += 1
-                cached_stems[word] = wordstem
-            else:
-                cached_stems[word] = None
+	retval[tag] += 1
+	if word in cached_stems:
+	    if cached_stems[word]:
+		retval[cached_stems[word]] += 1
+	else:
+	    wordstem = stem(word)
+	    if wordnet.synsets(wordstem):
+		retval[wordstem] += 1
+		cached_stems[word] = wordstem
+	    else:
+		cached_stems[word] = None
     for tag in tagcount:
 	   retval[tag] = float(tagcount[tag])/len(tagged)
     for i in range(0, len(words)):
