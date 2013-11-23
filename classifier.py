@@ -150,13 +150,13 @@ def learnOneVsAllClassifiers(trainExamples, featureFunction, labels,
     """
     retval = []
     for label in labels:
-	per_classifer_labels = [label, "not " + label]
-	weights = learnWeightsFromPerceptron(
-	    trainExamples, featureFunction, per_classifer_labels,
-	    perClassifierIters)
-	classifier = WeightedClassifier(
-	    per_classifer_labels, featureFunction, weights)
-	retval.append((label, classifier))
+		per_classifer_labels = [label, "not " + label]
+		weights = learnWeightsFromPerceptron(
+		    trainExamples, featureFunction, per_classifer_labels,
+		    perClassifierIters)
+		classifier = WeightedClassifier(
+		    per_classifer_labels, featureFunction, weights)
+		retval.append((label, classifier))
     return retval
 
 class PoetryClassifier(OneVsAllClassifier):
