@@ -13,7 +13,7 @@ TENDER_MOODS = ('Intimate', 'Loving', 'Warm-hearted', 'Sympathetic', 'Touched',
 SCARED_MOODS = ('Tense', 'Nervous', 'Anxious', 'Jittery', 'Frightened',
                 'Panic-stricken', 'Terrified')
 ANGRY_MOODS = ('Irritated', 'Resentful', 'Miffed', 'Upset', 'Mad', 'Furious',
-               'Raging') 
+               'Raging')
 SAD_MOODS = ('Down', 'Blue', 'Mopey', 'Grieved', 'Dejected', 'Depressed',
              'Heartbroken')
 HAPPY_MOODS = ('Fulfilled', 'Contented', 'Glad', 'Complete', 'Satisfied',
@@ -146,9 +146,9 @@ def main():
 
     cparser = subparsers.add_parser("classify", help = "Run classifier")
     cparser.add_argument("--iters", type=int, default="20",
-                         help="Number of iterations to run perceptron") 
+                         help="Number of iterations to run perceptron")
     cparser.add_argument("--path", type=str, default="./tmp",
-                            help="Path to data")
+                         help="Path to data")
     cparser.add_argument(
         "--debugscore", type=int, default=-1,
         help="Print debug info if poem score is <= debugscore")
