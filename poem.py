@@ -23,6 +23,16 @@ class PoemCSP():
 
 		self.poemLength = 100 # todo 
 
+		self.subsets = []
+		for i in xrange(n):
+			subset = []
+
+		
+
+			subsets.append(subset)
+
+
+
 	def addVariables(self):
 		for i in xrange(self.poemLength):
 			self.addVariable('w' + i, self.words)
@@ -32,7 +42,12 @@ class PoemCSP():
 
 	# amber
 	def addNGramFluencyConstraints(self):
-		pass
+		
+
+	def addNGramFactorFromNTuple(self, vars): # vars is tuple of n var names
+		for var in vars:
+			self.addVariable(''.join(vars) + var, )
+
 
 	# john
 	def addMoodFluencyConstraints(self):
