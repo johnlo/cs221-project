@@ -4,6 +4,7 @@ import operator
 import os
 import random
 from collections import Counter, defaultdict
+import poem
 
 MAIN_MOODS = ('Excited', 'Tender', 'Scared', 'Angry', 'Sad', 'Happy')
 EXCITED_MOODS = ('Ecstatic', 'Energetic', 'Aroused', 'Bouncy', 'Nervous',
@@ -138,15 +139,15 @@ def classify(args):
     print "dev:", printPercentage(dev_errors, dev_examples)
 
 def generate(args):
-    csp = poem.PoemCSP(args.path, args.ngramSize)  # add args
-    poemCSP.addVariables()  # words as a set, length of poem
-    poemCSP.addLineLengthConstraints()  # line length
-    poemCSP.addNGramFluencyConstraints()  # counter from N-gram seen to count
-    poemCSP.addMoodFluencyConstraints()  # mapping from mood, word to weight vector score
+    csp = poem.PoemCSP(args.path, args.ngramSize, args.mood)  # add args
+    csp.addVariables()  # words as a set, length of poem
+    csp.addLineLengthConstraints()  # line length
+    csp.addNGramFluencyConstraints()  # counter from N-gram seen to count
+    csp.addMoodFluencyConstraints()  # mapping from mood, word to weight vector score
     if args.rhyme:
-        poemCSP.addRhymeConstraints()  # line length, rhyme scheme (every other, etc.)
+        csp.addRhymeConstraints()  # line length, rhyme scheme (every other, etc.)
     if args.meter:
-        poemCSP.addMeterConstriaints()  # line length, desired syllable per line
+        csp.addMeterConstraints()  # line length, desired syllable per line
     alg = solver.BacktrackingSearch()
     alg.solve(csp)
     print alg.optimalAssignment
@@ -171,6 +172,9 @@ def main():
     gparser = subparsers.add_parser("generate", help = "Run generator")
     gparser.add_argument("--ngramSize", type=int, default=3,
                          help="Value of N to use in N-gram fluency constraints.")
+    gparser.add_argument("--mood", type=str, default='Happy',
+                         help="Mood of the poem to be generated.")
+    gparser.set_defaults(func=generate)
 
     args = parser.parse_args()
     args.func(args)

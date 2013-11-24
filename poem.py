@@ -5,6 +5,7 @@ from collections import Counter
 class PoemCSP(solver.CSP):
     def __init__(self, path, ngramSize, mood):
         solver.CSP.__init__(self)
+        self.ngramSize = ngramSize
         self.poems = {}
         poem_lengths = Counter()
         line_lengths = Counter()
@@ -24,7 +25,7 @@ class PoemCSP(solver.CSP):
 
         self.words = list()
         self.words.append('\n')  # newline should be in the domain
-        nGramCounter = Counter()
+        self.nGramCounter = Counter()
         for poem in self.poems.values():
             split_poem = poem.split()
             self.words += split_poem
@@ -32,7 +33,7 @@ class PoemCSP(solver.CSP):
             for word in split_poem:
                 lastNWords.append(word)
                 if len(lastNWords) == ngramSize:
-                    nGramCounter[tuple(lastNWords)] += 1
+                    self.nGramCounter[tuple(lastNWords)] += 1
                     lastNWords = lastNWords[1:]
         self.words = list(set(self.words))
 
@@ -61,13 +62,36 @@ class PoemCSP(solver.CSP):
             if i > 0:
                 self.add_unary_potential('w' + str(i), lambda x: x == '\n')
 
-    # amber
     def addNGramFluencyConstraints(self):
-        pass
+    	lastNVars = []
+    	floatDomain = [1/float(i)  if i else 0 for i in xrange(0, 1001)]
+        for var in self.varNames:
+        	lastNVars.append(var)
+        	if len(lastNVars) == self.ngramSize:
+        		self.addNGramFactorFromNTuple(tuple(lastNVars), floatDomain)
+        		lastNVars = lastNVars[1:]
 
-    def addNGramFactorFromNTuple(self, vars): # vars is tuple of n var names
-        for var in vars:
-            self.addVariable(''.join(vars) + var, )
+    def addNGramFactorFromNTuple(self, vars, floatDomain):
+    	processVars = []
+        for index, var in enumerate(vars):
+        	varName = ''.join(vars) + var
+        	prevDomain = self.subsets[index - 1] if index else ([], [])
+        	
+        	# MEMORY ERROR HERE
+        	self.add_variable(varName, [(l1, l2) for l1 in prevDomain for l2 in self.subsets[index]])
+        	processVars.append(varName)
+
+        for index in xrange(1, len(processVars)):
+        	self.add_binary_potential(processVars[index - 1], processVars[index], \
+        		lambda x, y: x[1] == y[0])
+
+        # variable to weight the sequence
+        nth_var = processVars[-1] if len(processVars) else None
+        self.add_variable("nth" + nth_var, floatDomain)
+
+        if len(processVars):
+        	self.add_binary_potential(nth_var, "nth" + nth_var, \
+        		lambda x, y: y == self.nGramCounter[tuple(x)]/sum(self.nGramCounter.values()))
 
     # john
     def addMoodFluencyConstraints(self):
@@ -80,10 +104,10 @@ class PoemCSP(solver.CSP):
         pass
 
 
-def main():
-    poemCSP = PoemCSP('./tmp', 5, 'Happy')
-    poemCSP.addVariables()
-    poemCSP.addLineLengthConstraints()
+# def main():
+#     poemCSP = PoemCSP('./tmp', 5, 'Happy')
+#     poemCSP.addVariables()
+#     poemCSP.addLineLengthConstraints()
 
-if __name__ == "__main__":
-  main()
+# if __name__ == "__main__":
+#   main()
