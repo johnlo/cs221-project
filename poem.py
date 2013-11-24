@@ -64,21 +64,29 @@ class PoemCSP(solver.CSP):
 
     def addNGramFluencyConstraints(self):
     	lastNVars = []
+    	# need to make sure this domain is inclusive and/or values are properly rounded
     	floatDomain = [1/float(i)  if i else 0 for i in xrange(0, 1001)]
+
+    	nDomains = []
+    	for i in xrange(self.ngramSize):
+    		prevDomain = self.subsets[i - 1] if i else []
+    		newDomain = []
+    		for l1 in prevDomain:
+    			for l2 in self.subsets[i]:
+    				newDomain.append((l1, l2)) # MEMORY ERROR HERE
+    		nDomains.append(newDomain)
+
         for var in self.varNames:
         	lastNVars.append(var)
         	if len(lastNVars) == self.ngramSize:
-        		self.addNGramFactorFromNTuple(tuple(lastNVars), floatDomain)
+        		self.addNGramFactorFromNTuple(tuple(lastNVars), nDomains, floatDomain)
         		lastNVars = lastNVars[1:]
 
-    def addNGramFactorFromNTuple(self, vars, floatDomain):
+    def addNGramFactorFromNTuple(self, vars, nDomains, floatDomain):
     	processVars = []
         for index, var in enumerate(vars):
         	varName = ''.join(vars) + var
-        	prevDomain = self.subsets[index - 1] if index else ([], [])
-        	
-        	# MEMORY ERROR HERE
-        	self.add_variable(varName, [(l1, l2) for l1 in prevDomain for l2 in self.subsets[index]])
+        	self.add_variable(varName, nDomains[index])
         	processVars.append(varName)
 
         for index in xrange(1, len(processVars)):
