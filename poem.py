@@ -9,29 +9,38 @@ class PoemCSP():
 		for poemdir in os.listdir(path):
 			self.poems[poemdir] = open(os.path.join(path, poemdir, 'text')).read()
 
-		self.words = set()
+		self.words = list()
 		nGramCounter = Counter()
 		for poem in self.poems.values():
+			split_poem = poem.split()
+			self.words += split_poem
 			lastNWords = []
-			for word in poem.split():
+			for word in split_poem:
 				lastNWords.append(word)
 				if len(lastNWords) == n:
 					nGramCounter[tuple(lastNWords)] += 1
 					lastNWords = lastNWords[1:]
 
-		self.words = list(self.words)
+		self.words = list(set(self.words))
 
-		self.poemLength = 100 # todo 
+		self.poemLength = 100 # todo
 
 		self.subsets = []
-		for i in xrange(n):
-			subset = []
+		for i in xrange(n+1):
+			self.subsets.append(self.getNGrams(self.poems.values(), i))
+		print self.subsets
 
-		
-
-			subsets.append(subset)
-
-
+	def getNGrams(self, poems, n):
+		retval = []
+		for poem in poems:
+			words = poem.split()
+			lastNWords = []
+			for word in words:
+				lastNWords.append(word)
+				if len(lastNWords) == n:
+					retval.append(tuple(lastNWords))
+					lastNWords = lastNWords[1:]
+		return retval
 
 	def addVariables(self):
 		for i in xrange(self.poemLength):
@@ -42,7 +51,7 @@ class PoemCSP():
 
 	# amber
 	def addNGramFluencyConstraints(self):
-		
+		pass
 
 	def addNGramFactorFromNTuple(self, vars): # vars is tuple of n var names
 		for var in vars:
@@ -61,8 +70,7 @@ class PoemCSP():
 
 
 def main():
-	poemCSP = PoemCSP('./tmp', 2)
+	poemCSP = PoemCSP('./tmp', 5, 'Happy')
 
 if __name__ == "__main__":
     main()
-

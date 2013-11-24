@@ -137,22 +137,40 @@ def classify(args):
     print "train:", printPercentage(train_errors, train_examples)
     print "dev:", printPercentage(dev_errors, dev_examples)
 
+def generate(args):
+    csp = poem.PoemCSP(args.path, args.ngramSize)  # add args
+    poemCSP.addVariables()  # words as a set, length of poem
+    poemCSP.addLineLengthConstraints()  # line length
+    poemCSP.addNGramFluencyConstraints()  # counter from N-gram seen to count
+    poemCSP.addMoodFluencyConstraints()  # mapping from mood, word to weight vector score
+    if args.rhyme:
+        poemCSP.addRhymeConstraints()  # line length, rhyme scheme (every other, etc.)
+    if args.meter:
+        poemCSP.addMeterConstriaints()  # line length, desired syllable per line
+    alg = solver.BacktrackingSearch()
+    alg.solve(csp)
+    print alg.optimalAssignment
+
 def main():
     import argparse
     parser = argparse.ArgumentParser(description="Poetry classifier")
     parser.add_argument("--examples", type=int, default=10000,
                         help="Maximum number of examples to use" )
+    parser.add_argument("--path", type=str, default="./tmp",
+                        help="Path to data")
     subparsers = parser.add_subparsers()
 
     cparser = subparsers.add_parser("classify", help = "Run classifier")
     cparser.add_argument("--iters", type=int, default="20",
                          help="Number of iterations to run perceptron")
-    cparser.add_argument("--path", type=str, default="./tmp",
-                         help="Path to data")
     cparser.add_argument(
         "--debugscore", type=int, default=-1,
         help="Print debug info if poem score is <= debugscore")
     cparser.set_defaults(func=classify)
+
+    gparser = subparsers.add_parser("generate", help = "Run generator")
+    gparser.add_argument("--ngramSize", type=int, default=3,
+                         help="Value of N to use in N-gram fluency constraints.")
 
     args = parser.parse_args()
     args.func(args)
