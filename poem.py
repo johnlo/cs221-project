@@ -1,3 +1,4 @@
+import math
 import os
 import solver
 from collections import Counter
@@ -11,7 +12,7 @@ class PoemCSP(solver.CSP):
         self.ngramSize = ngramSize
 
         self.poems = {}
-        poem_lengths = Counter()
+        num_lines = Counter()
         line_lengths = Counter()
         num_poems = 0
         for poemdir in os.listdir(path):
@@ -21,31 +22,23 @@ class PoemCSP(solver.CSP):
                 if num_poems > MAX_POEMS: break
                 self.poems[poemdir] = \
                     open(os.path.join(path, poemdir, 'text')).read().replace(
-                    '?', ' ?').replace('!', ' !').replace('.', ' .')
-                poem_lengths[len(self.poems[poemdir].split())] += 1
-                for line in self.poems[poemdir].split('\n'):
+                    '?', ' ?').replace('!', ' !').replace('.', ' .').replace(',', ' ,')
+                print self.poems[poemdir]
+                lines = self.poems[poemdir].split('\n')
+                num_lines[len(lines)] += 1
+                for line in lines:
                     length = len(line.split())
                     if length > 0:
                         line_lengths[length] += 1
         self.lineLength = line_lengths.most_common(1)[0][0]
-        self.poemLength = 3 * self.lineLength #poem_lengths.most_common(1)[0][0]
-
-        self.words = list()
-        self.words.append('\n')  # newline should be in the domain
-
-        for poem in self.poems.values():
-            self.words += poem.split()
-        self.words = list(set(self.words))
+        self.numLines = num_lines.most_common(1)[0][0]
+        self.numNgrams = self.lineLength * self.numLines
 
         self.ngramCounter = Counter(self.getNGrams(self.poems.values(), ngramSize))
+        self.ngrams = list(self.ngramCounter.keys())
+        print self.ngrams
 
-        self.subsets = []
-        for i in xrange(ngramSize + 1):
-            self.subsets.append(self.getNGrams(self.poems.values(), i))
-
-        self.cached_ngram_domains = {}
-        print len(self.words), self.poemLength, self.lineLength
-
+        print len(self.ngrams), self.numNgrams
 
     def getNGrams(self, poems, n):
         if n == 0:
@@ -62,8 +55,8 @@ class PoemCSP(solver.CSP):
         return retval
 
     def addVariables(self):
-        for i in xrange(self.poemLength):
-            self.add_variable('w' + str(i), self.words)
+        for i in xrange(self.numNgrams):
+            self.add_variable('v' + str(i), self.ngrams)
 
     def addLineLengthConstraints(self):
         for i in xrange(0, self.poemLength, self.lineLength):
@@ -71,49 +64,20 @@ class PoemCSP(solver.CSP):
                 self.add_unary_potential('w' + str(i), lambda x: x == '\n')
 
     def addNGramFluencyConstraints(self):
-        lastNVars = []
-        for i in xrange(self.poemLength):
-            var = 'w' + str(i)
-            lastNVars.append(var)
-            if len(lastNVars) == self.ngramSize:
-                self.addNGramFactorFromNTuple(tuple(lastNVars))
-                lastNVars = lastNVars[1:]
-
-    def addNGramFactorFromNTuple(self, varNames):
-        print varNames
-        for i in xrange(len(varNames)):
-            newVarName = ('ngram', varNames, i)
-            self.add_variable(newVarName, self.getNGramDomain(i))
-            def observation(v, a):
-                before, after = a
-                retval = len(after) > 0 and v == after[len(after)-1]
-                #if retval: print "observation: ", v, a
-                return retval
-            self.add_binary_potential(varNames[i], newVarName, observation)
-            if i > 0:
-                def transfer(a1, a2):
-                    return a1[1] == a2[0]
-                prevVarName = ('ngram', varNames, i-1)
-                self.add_binary_potential(prevVarName, newVarName, transfer)
-        def score(a):
-            before, after = a
-            retval = self.ngramCounter[after]
-            #if retval: print "score: ", a, retval
-            return retval
-        self.add_unary_potential(('ngram', varNames, len(varNames)-1), score)
-
-    def getNGramDomain(self, i):
-        if i not in self.cached_ngram_domains:
-            self.cached_ngram_domains[i] = []
-            for l1 in (self.subsets[i] if i > 0 else [()]):
-                for l2 in self.subsets[i+1]:
-                    def consistent(a1, a2):
-                        for j in xrange(len(a1)):
-                            if a1[j] != a2[j]: return False
-                        return True
-                    if consistent(l1, l2):
-                        self.cached_ngram_domains[i].append((l1, l2))
-        return self.cached_ngram_domains[i]
+        for i in xrange(1, self.numNgrams):
+            prevVar = 'v' + str(i-1)
+            nextVar = 'v' + str(i)
+            def consistency(v1, v2):
+                for i in xrange(1, len(v1)):
+                    if v1[i] != v2[i-1]:
+                        return False
+                return True
+            self.add_binary_potential(prevVar, nextVar, consistency)
+        for i in xrange(self.numNgrams):
+            self.add_unary_potential('v' + str(i), lambda x: self.ngramCounter[x])
+            self.add_unary_potential('v' + str(i), lambda x: 'by' not in x)
+        self.add_unary_potential(
+            'v0', lambda x: x[0] not in [',', '.', '?', '!'] and x[0][0].isupper())
 
     # john
     def addMoodFluencyConstraints(self):
@@ -138,8 +102,13 @@ def main():
     alg.solve(csp, True, True, True)
     print alg.optimalAssignment
     poem = ""
-    for i in xrange(csp.poemLength):
-        poem += alg.optimalAssignment['w' + str(i)] + ' '
+    for i in xrange(csp.numNgrams):
+        if i == 0:
+            for w in alg.optimalAssignment['v' + str(i)]:
+                poem += w + ' '
+        else:
+            ngram = alg.optimalAssignment['v' + str(i)]
+            poem += ngram[len(ngram)-1] + ' '
     print poem
 
 if __name__ == "__main__":
