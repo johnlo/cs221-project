@@ -1,4 +1,5 @@
 import copy
+import time
 
 def argmin(pairs):
     return None if len(pairs) == 0 else min(pairs, key=lambda p:p[1])[0]
@@ -210,6 +211,7 @@ class BacktrackingSearch():
         # name/value can be obtained from self.csp.valNames[A]
         self.domains = [list(range(len(domain))) for domain in self.csp.valNames]
 
+        self.start = time.time()
         # Perform backtracking search.
         self.backtrack([None] * self.csp.numVars, 0, 1)
 
@@ -229,6 +231,8 @@ class BacktrackingSearch():
         @param numAssigned: Number of currently assigned variables
         @param weight: The weight of the current partial assignment.
         """
+        if self.numAssignments > 0:
+            return
 
         self.numOperations += 1
         assert weight > 0
