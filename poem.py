@@ -227,23 +227,46 @@ class MarkovPoem():
 	def __init__(self, path, ngram_size, mood):
 		self.ngram_dict = defaultdict(list)
 		self.poems = dict()
+		self.line_lengths = Counter()
+		self.num_lines = Counter()
+		self.ngram_size = ngram_size
 		for poemdir in os.listdir(path):
 			    moods = open(os.path.join(path, poemdir, 'mood')).read().split()
 			    if mood in moods:
-				self.poems[poemdir] = \
-				    open(os.path.join(path, poemdir, 'text')).read().replace(
-				    '?', ' ?').replace('!', ' !').replace('.', ' .').replace(',', ' ,')
-                                lines = self.poems[poemdir].split('\n')
-                                lines = lines[1:]
-                                self.poems[poemdir] = '\n'.join(lines)
-                                words = self.poems[poemdir].split()
-                                for i in range(len(words) - ngram_size - 1):
-                                    key = tuple(words[i:i+ngram_size])
-                                    value = words[i+ngram_size+1]
-                                    self.ngram_dict[key].append(value)
+					self.poems[poemdir] = \
+					    open(os.path.join(path, poemdir, 'text')).read().replace(
+					    '?', ' ?').replace('!', ' !').replace('.', ' .').replace(',', ' ,')
+					lines = self.poems[poemdir].split('\n')
+					lines = lines[1:]
+					self.num_lines[len(lines)] += 1
+					for line in lines:
+						words = line.split()
+						if len(words):
+							self.line_lengths[len(words)] += 1
+					self.poems[poemdir] = '\n'.join(lines)
+					words = self.poems[poemdir].split()
+					for i in range(len(words) - ngram_size - 1):
+						key = tuple(words[i:i+ngram_size])
+						value = words[i+ngram_size+1]
+						self.ngram_dict[key].append(value)
+
+	def generate(self, rhyme=False, meter=False):
+		poem = [x for x in random.choice(self.ngram_dict.keys())]
+
+		line_length = random.choice(self.line_lengths.most_common(5))[0]
+		num_lines = random.choice(self.num_lines.most_common(5))[0]
+
+		for i in xrange(line_length * num_lines):
+			cur_ngram = tuple(poem[:-self.ngram_size])
+			next_word = random.choice(self.ngram_dict[cur_ngram])
+			poem.append(next_word)
+
+		return ' '.join(poem)
+
 
 def main2():
     mp = MarkovPoem('./tmp', 2, 'Happy')
+    print mp.generate()
 
 if __name__ == "__main__":
     main2()
