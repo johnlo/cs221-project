@@ -7,6 +7,7 @@ import solver
 from collections import Counter
 from collections import defaultdict
 import string, 	re
+from nltk.corpus import cmudict
 
 def rhymes(w1, w2):
     l = min(len(w1), len(w2))
@@ -61,6 +62,14 @@ def syllables(wordList):
 			syllable_count[word] = count
 			syllables += count
 	return syllables
+
+
+def stressedSyllables(word):
+	pronunciations = cmu.dict()[word]
+	stresses = []
+	for pronunciation in pronunciations: # there are often multiple possible pronunciations
+		stresses.append([i[-1] for i in pronunciation if i[-1].isdigit()])
+	return stresses
 
 
 class PoemCSP(solver.CSP):
