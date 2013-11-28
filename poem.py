@@ -6,7 +6,7 @@ import random
 import solver
 from collections import Counter
 from collections import defaultdict
-import string, 	re
+import string, re
 from nltk.corpus import cmudict
 
 def rhymes(w1, w2):
@@ -19,17 +19,17 @@ def rhymes(w1, w2):
 syllable_count = Counter()
 
 subsyl = ["cial", "tia", "cius", "cious", "gui", "ion", "iou",
-                   "sia$", ".ely$"]
+		   "sia$", ".ely$"]
 
 addsyl = ["ia", "riet", "dien", "iu", "io", "ii",
-                   "[aeiouy]bl$", "mbl$",
-                   "[aeiou]{3}",
-                   "^mc", "ism$",
-                   "(.)(?!\\1)([aeiouy])\\2l$",
-                   "[^l]llien",
-                   "^coad.", "^coag.", "^coal.", "^coax.",
-                   "(.)(?!\\1)[gq]ua(.)(?!\\2)[aeiou]",
-                   "dnt$"]
+		   "[aeiouy]bl$", "mbl$",
+		   "[aeiou]{3}",
+		   "^mc", "ism$",
+		   "(.)(?!\\1)([aeiouy])\\2l$",
+		   "[^l]llien",
+		   "^coad.", "^coag.", "^coal.", "^coax.",
+		   "(.)(?!\\1)[gq]ua(.)(?!\\2)[aeiou]",
+		   "dnt$"]
 
 def syllables(wordList):
 	syllables = 0
@@ -81,7 +81,7 @@ class PoemCSP(solver.CSP):
 		self.poems = {}
 		num_lines = Counter()
 		line_lengths = Counter()
-	        self.pos = defaultdict(set)
+		self.pos = defaultdict(set)
 		for poemdir in os.listdir(path):
 		    moods = open(os.path.join(path, poemdir, 'mood')).read().split()
 		    if mood in moods:
@@ -183,42 +183,42 @@ def main():
     poem = ' '.join(words)
     print ''
     poem = poem.replace(
-        ' ?', '?').replace(' !', '!').replace(' .', '.').replace(' ,', ',').replace(
-        ' \n?', '?\n').replace('\n!', '!\n').replace('\n.', '.\n').replace(
-        ' \n,', ',\n').replace('\n ', '\n').replace(
-        ' ?', '?').replace(' !', '!').replace(' .', '.').replace(' ,', ',').replace(
-        ' \n?', '?\n').replace('\n!', '!\n').replace('\n.', '.\n').replace(
-        ' \n,', ',\n').replace('\n ', '\n')
+	' ?', '?').replace(' !', '!').replace(' .', '.').replace(' ,', ',').replace(
+	' \n?', '?\n').replace('\n!', '!\n').replace('\n.', '.\n').replace(
+	' \n,', ',\n').replace('\n ', '\n').replace(
+	' ?', '?').replace(' !', '!').replace(' .', '.').replace(' ,', ',').replace(
+	' \n?', '?\n').replace('\n!', '!\n').replace('\n.', '.\n').replace(
+	' \n,', ',\n').replace('\n ', '\n')
 
     # rhyming code start
     pos = defaultdict(set)
     for p in csp.poems.values():
-        for w, t in nltk.pos_tag(p.split()):
-            pos[t].add(w)
+	for w, t in nltk.pos_tag(p.split()):
+	    pos[t].add(w)
     lines = poem.split('\n')
     lines = [line.split() for line in lines]
     for i in xrange(0, len(lines), 2):
-        if i + 1 >= len(lines):
-            break
-        line1 = lines[i]
-        line2 = lines[i+1]
-        if len(line1) == 0 or len(line2) == 0:
-            break
-        last1 = line1[len(line1)-1]
-        last2 = line2[len(line2)-1]
-        pos1 = nltk.pos_tag([last1])[0][1]
-        pos2 = nltk.pos_tag([last2])[0][1]
-        done = False
-        for otherword in pos[pos1]:
-            if rhymes(last1, otherword):
-                line2[len(line2)-1] = otherword
-                done = True
-                break
-        if not done:
-            for otherword in pos[pos2]:
-                if rhymes(last2, otherword):
-                    line1[len(line1)-1] = otherword
-                    break
+	if i + 1 >= len(lines):
+	    break
+	line1 = lines[i]
+	line2 = lines[i+1]
+	if len(line1) == 0 or len(line2) == 0:
+	    break
+	last1 = line1[len(line1)-1]
+	last2 = line2[len(line2)-1]
+	pos1 = nltk.pos_tag([last1])[0][1]
+	pos2 = nltk.pos_tag([last2])[0][1]
+	done = False
+	for otherword in pos[pos1]:
+	    if rhymes(last1, otherword):
+		line2[len(line2)-1] = otherword
+		done = True
+		break
+	if not done:
+	    for otherword in pos[pos2]:
+		if rhymes(last2, otherword):
+		    line1[len(line1)-1] = otherword
+		    break
     lines = [' '.join(line) for line in lines]
     poem = '\n'.join(lines)
     print poem
@@ -270,4 +270,3 @@ def main2():
 
 if __name__ == "__main__":
     main2()
-
