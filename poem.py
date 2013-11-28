@@ -223,11 +223,8 @@ def main():
     poem = '\n'.join(lines)
     print poem
 
-if __name__ == "__main__":
-    main()
-
 class MarkovPoem():
-	__init__(path, ngram_size, mood):
+	def __init__(self, path, ngram_size, mood):
 
 		ngram_dict = defaultdict(list)
 
@@ -239,12 +236,16 @@ class MarkovPoem():
 				self.poems[poemdir] = \
 				    open(os.path.join(path, poemdir, 'text')).read().replace(
 				    '?', ' ?').replace('!', ' !').replace('.', ' .').replace(',', ' ,')
+                                words = self.poems[poemdir].split()
+                                for i in range(len(words) - ngram_size - 1):
+                                    key = tuple(words[i:i+ngram_size])
+                                    value = words[i+ngram_size+1]
+                                    ngram_dict[key].append(value)
+                print ngram_dict
 
-				last_n_words = []
-				for word in self.poems[poemdir]:
-					last_n_words.append(word)
-					if len(last_n_words) == ngram_size:
-						ngram_dict[tuple()]
+def main2():
+    mp = MarkovPoem('./tmp', 2, 'Happy')
 
-				
+if __name__ == "__main__":
+    main2()
 
