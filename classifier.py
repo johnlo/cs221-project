@@ -165,6 +165,9 @@ class PoetryClassifier(OneVsAllClassifier):
 	    trainExamples, featureExtractor, labels, iters)
 	super(PoetryClassifier, self).__init__(labels, classifiers)
 
+    def getParams(self, index):
+        return self.classifiers[index][1].params
+
 cached_tags = {}
 cached_stems = {}
 cached_rhyme_scores = {}

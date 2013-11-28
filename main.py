@@ -2,6 +2,7 @@ import classifier
 import datetime
 import operator
 import os
+import pickle
 import random
 from collections import Counter, defaultdict
 import poem
@@ -138,19 +139,37 @@ def classify(args):
     print "train:", printPercentage(train_errors, train_examples)
     print "dev:", printPercentage(dev_errors, dev_examples)
 
+def moodIndex(mood):
+    return list(MAIN_MOODS).index(mood)
+
+def submoodIndex(mood, submood):
+    return list(ALL_MOOD_CLASSES[moodIndex(mood)+1]).index(submood)
+
+def getClassifierParams(classifiers, mood, submood):
+    if not submood:
+        return classifiers[0].getParams(moodIndex(mood))
+    return getClassifierForMainMood(classifiers, mood).getParams(submoodIndex(mood, submood))
+
 def generate(args):
-    csp = poem.PoemCSP(args.path, args.ngramSize, args.mood)  # add args
-    csp.addVariables()  # words as a set, length of poem
-    csp.addLineLengthConstraints()  # line length
-    csp.addNGramFluencyConstraints()  # counter from N-gram seen to count
-    csp.addMoodFluencyConstraints()  # mapping from mood, word to weight vector score
-    if args.rhyme:
-        csp.addRhymeConstraints()  # line length, rhyme scheme (every other, etc.)
-    if args.meter:
-        csp.addMeterConstraints()  # line length, desired syllable per line
-    alg = solver.BacktrackingSearch()
-    alg.solve(csp)
-    print alg.optimalAssignment
+    pkl_filename = 'classifiers.pkl'
+    classifiers = None
+    if not os.path.isfile(pkl_filename):
+        poems = loadPoemsFromDisk(args.path, args.examples)
+        classifiers = []
+        trainDevSets = {}
+        for labels in ALL_MOOD_CLASSES:
+            train, dev = shuffleIntoTrainAndDevExamples(poems, labels)
+            trainDevSets[labels] = (train, dev)
+            classifiers.append(classifier.PoetryClassifier(
+                    train, classifier.extractBigramFeatures, labels, args.iters))
+        pkl_file = open(pkl_filename, 'wb')
+        pickle.dump(classifiers, pkl_file)
+    if not classifiers:
+        pkl_file = open(pkl_filename, 'rb')
+        classifiers = pickle.load(pkl_file)
+    params = getClassifierParams(classifiers, args.mood, args.submood)
+    mp = poem.MarkovPoem(args.path, args.ngramSize, args.mood, args.submood, params)
+    print mp.generate()
 
 def main():
     import argparse
@@ -159,11 +178,11 @@ def main():
                         help="Maximum number of examples to use" )
     parser.add_argument("--path", type=str, default="./tmp",
                         help="Path to data")
+    parser.add_argument("--iters", type=int, default="20",
+                        help="Number of iterations to run perceptron")
     subparsers = parser.add_subparsers()
 
     cparser = subparsers.add_parser("classify", help = "Run classifier")
-    cparser.add_argument("--iters", type=int, default="20",
-                         help="Number of iterations to run perceptron")
     cparser.add_argument(
         "--debugscore", type=int, default=-1,
         help="Print debug info if poem score is <= debugscore")
@@ -173,6 +192,8 @@ def main():
     gparser.add_argument("--ngramSize", type=int, default=3,
                          help="Value of N to use in N-gram fluency constraints.")
     gparser.add_argument("--mood", type=str, default='Happy',
+                         help="Mood of the poem to be generated.")
+    gparser.add_argument("--submood", type=str, default='Glad',
                          help="Mood of the poem to be generated.")
     gparser.set_defaults(func=generate)
 

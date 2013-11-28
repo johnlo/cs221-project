@@ -1,6 +1,8 @@
-all: clean
+all: generate
+
+generate: clean
 	cp -r data/ tmp/
-	python poem.py
+	python main.py generate
 
 classify: clean
 	cp -r data/ tmp/
