@@ -19,250 +19,259 @@ def rhymes(w1, w2):
 syllable_count = Counter()
 
 subsyl = ["cial", "tia", "cius", "cious", "gui", "ion", "iou",
-		   "sia$", ".ely$"]
+                   "sia$", ".ely$"]
 
 addsyl = ["ia", "riet", "dien", "iu", "io", "ii",
-		   "[aeiouy]bl$", "mbl$",
-		   "[aeiou]{3}",
-		   "^mc", "ism$",
-		   "(.)(?!\\1)([aeiouy])\\2l$",
-		   "[^l]llien",
-		   "^coad.", "^coag.", "^coal.", "^coax.",
-		   "(.)(?!\\1)[gq]ua(.)(?!\\2)[aeiou]",
-		   "dnt$"]
+                   "[aeiouy]bl$", "mbl$",
+                   "[aeiou]{3}",
+                   "^mc", "ism$",
+                   "(.)(?!\\1)([aeiouy])\\2l$",
+                   "[^l]llien",
+                   "^coad.", "^coag.", "^coal.", "^coax.",
+                   "(.)(?!\\1)[gq]ua(.)(?!\\2)[aeiou]",
+                   "dnt$"]
 
 def syllables(wordList):
-	syllables = 0
-	for word in wordList:
-		word = word.strip().lower()
-		if syllable_count[word] > 0:
-			syllables += syllable_count[word]
-		else:
-			if word[-1] == 'e': # silent e!
-				word = word[:-1]
+        syllables = 0
+        for word in wordList:
+                word = word.strip().lower()
+                if syllable_count[word] > 0:
+                        syllables += syllable_count[word]
+                else:
+                        if word[-1] == 'e': # silent e!
+                                word = word[:-1]
 
-			count = 0
-			prev_was_vowel = 0
-			for c in word:
-				is_vowel = c in ['a', 'e', 'i', 'o', 'u', 'y']
-				if is_vowel and not prev_was_vowel:
-					count += 1
-				prev_was_vowel = is_vowel
+                        count = 0
+                        prev_was_vowel = 0
+                        for c in word:
+                                is_vowel = c in ['a', 'e', 'i', 'o', 'u', 'y']
+                                if is_vowel and not prev_was_vowel:
+                                        count += 1
+                                prev_was_vowel = is_vowel
 
-			# Add & subtract syllables
-			for r in addsyl:
-				r = re.compile(r)
-				if r.search(word):
-					count += 1
-			for r in subsyl:
-				r = re.compile(r)
-				if r.search(word):
-					count -= 1
+                        # Add & subtract syllables
+                        for r in addsyl:
+                                r = re.compile(r)
+                                if r.search(word):
+                                        count += 1
+                        for r in subsyl:
+                                r = re.compile(r)
+                                if r.search(word):
+                                        count -= 1
 
-			syllable_count[word] = count
-			syllables += count
-	return syllables
+                        syllable_count[word] = count
+                        syllables += count
+        return syllables
 
 
 def stressedSyllables(word):
-	pronunciations = cmu.dict()[word]
-	stresses = []
-	for pronunciation in pronunciations: # there are often multiple possible pronunciations
-		stresses.append([i[-1] for i in pronunciation if i[-1].isdigit()])
-	return stresses
+        pronunciations = cmu.dict()[word]
+        stresses = []
+        for pronunciation in pronunciations: # there are often multiple possible pronunciations
+                stresses.append([i[-1] for i in pronunciation if i[-1].isdigit()])
+        return stresses
 
 
 class PoemCSP(solver.CSP):
-	def __init__(self, path, ngramSize, mood):
-		solver.CSP.__init__(self)
+        def __init__(self, path, ngramSize, mood):
+                solver.CSP.__init__(self)
 
-		self.ngramSize = ngramSize
+                self.ngramSize = ngramSize
 
-		self.poems = {}
-		num_lines = Counter()
-		line_lengths = Counter()
-		self.pos = defaultdict(set)
-		for poemdir in os.listdir(path):
-		    moods = open(os.path.join(path, poemdir, 'mood')).read().split()
-		    if mood in moods:
-			self.poems[poemdir] = \
-			    open(os.path.join(path, poemdir, 'text')).read().replace(
-			    '?', ' ?').replace('!', ' !').replace('.', ' .').replace(',', ' ,')
-			lines = self.poems[poemdir].split('\n')
-			num_lines[len(lines)] += 1
-			for line in lines:
-			    length = len(line.split())
-			    if length > 0:
-				line_lengths[length] += 1
-		self.lineLength = line_lengths.most_common(5)[random.randint(0, 4)][0]
-		self.numLines = num_lines.most_common(5)[random.randint(0, 4)][0] / 2
-		self.numNgrams = self.lineLength * self.numLines
+                self.poems = {}
+                num_lines = Counter()
+                line_lengths = Counter()
+                self.pos = defaultdict(set)
+                for poemdir in os.listdir(path):
+                    moods = open(os.path.join(path, poemdir, 'mood')).read().split()
+                    if mood in moods:
+                        self.poems[poemdir] = \
+                            open(os.path.join(path, poemdir, 'text')).read().replace(
+                            '?', ' ?').replace('!', ' !').replace('.', ' .').replace(',', ' ,')
+                        lines = self.poems[poemdir].split('\n')
+                        num_lines[len(lines)] += 1
+                        for line in lines:
+                            length = len(line.split())
+                            if length > 0:
+                                line_lengths[length] += 1
+                self.lineLength = line_lengths.most_common(5)[random.randint(0, 4)][0]
+                self.numLines = num_lines.most_common(5)[random.randint(0, 4)][0] / 2
+                self.numNgrams = self.lineLength * self.numLines
 
-		self.ngrams = self.getNGrams(self.poems.values(), ngramSize)
-		self.ngramCounter = Counter(self.ngrams)
-		self.domains = []
-		for _ in xrange(self.numLines):
-		    sample_index = int((len(self.ngrams)-self.lineLength*2) * random.random())
-		    self.domains.append(self.ngrams[sample_index:sample_index+self.lineLength*2])
+                self.ngrams = self.getNGrams(self.poems.values(), ngramSize)
+                self.ngramCounter = Counter(self.ngrams)
+                self.domains = []
+                for _ in xrange(self.numLines):
+                    sample_index = int((len(self.ngrams)-self.lineLength*2) * random.random())
+                    self.domains.append(self.ngrams[sample_index:sample_index+self.lineLength*2])
 
-		print self.lineLength, self.numLines, self.numNgrams
+                print self.lineLength, self.numLines, self.numNgrams
 
-	def getNGrams(self, poems, n):
-		if n == 0:
-		    return [()]
-		retval = []
-		for poem in poems:
-		    words = poem.split() + ['\n']
-		    lastNWords = []
-		    for word in words:
-			lastNWords.append(word)
-			if len(lastNWords) == n:
-			    retval.append(tuple(lastNWords))
-			    lastNWords = lastNWords[1:]
-		return retval
+        def getNGrams(self, poems, n):
+                if n == 0:
+                    return [()]
+                retval = []
+                for poem in poems:
+                    words = poem.split() + ['\n']
+                    lastNWords = []
+                    for word in words:
+                        lastNWords.append(word)
+                        if len(lastNWords) == n:
+                            retval.append(tuple(lastNWords))
+                            lastNWords = lastNWords[1:]
+                return retval
 
-	def addVariables(self):
-		for i in xrange(self.numNgrams):
-		    self.add_variable('v' + str(i), self.domains[i/self.lineLength])
+        def addVariables(self):
+                for i in xrange(self.numNgrams):
+                    self.add_variable('v' + str(i), self.domains[i/self.lineLength])
 
-	def addNGramFluencyConstraints(self):
-		for i in xrange(1, self.numNgrams):
-		    if (i-1)/self.lineLength == i/self.lineLength:
-			def line_consistency(v1, v2):
-			    for i in xrange(1, len(v1)):
-				if v1[i] != v2[i-1]:
-				    return False
-				return True
-			self.add_binary_potential('v' + str(i-1), 'v' + str(i), line_consistency)
-		for i in xrange(self.numNgrams):
-		    self.add_unary_potential('v' + str(i), lambda x: self.ngramCounter[x])
-		    self.add_unary_potential('v' + str(i), lambda x: 'by' not in x)
-		    for j in xrange(i+1,self.numNgrams):
-			self.add_binary_potential('v' + str(i), 'v' + str(j), lambda x, y: x != y)
-		self.add_unary_potential('v0', lambda x: x[0] not in [',', '.', '?', '!'])
-		def capitalized(x):
-		    if not x[0][0].isupper():
-			return False
-		    for i in xrange(1, len(x)):
-			if x[i][0].isupper():
-			    return False
-		    for i in xrange(1, len(x[0])):
-			if x[0][i].isupper():
-			    return False
-		    return True
-		self.add_unary_potential('v0', capitalized)
-		self.add_unary_potential('v' + str(self.numNgrams-1),
-					 lambda x: x[self.ngramSize-1] in ['.', '?', '!'])
+        def addNGramFluencyConstraints(self):
+                for i in xrange(1, self.numNgrams):
+                    if (i-1)/self.lineLength == i/self.lineLength:
+                        def line_consistency(v1, v2):
+                            for i in xrange(1, len(v1)):
+                                if v1[i] != v2[i-1]:
+                                    return False
+                                return True
+                        self.add_binary_potential('v' + str(i-1), 'v' + str(i), line_consistency)
+                for i in xrange(self.numNgrams):
+                    self.add_unary_potential('v' + str(i), lambda x: self.ngramCounter[x])
+                    self.add_unary_potential('v' + str(i), lambda x: 'by' not in x)
+                    for j in xrange(i+1,self.numNgrams):
+                        self.add_binary_potential('v' + str(i), 'v' + str(j), lambda x, y: x != y)
+                self.add_unary_potential('v0', lambda x: x[0] not in [',', '.', '?', '!'])
+                def capitalized(x):
+                    if not x[0][0].isupper():
+                        return False
+                    for i in xrange(1, len(x)):
+                        if x[i][0].isupper():
+                            return False
+                    for i in xrange(1, len(x[0])):
+                        if x[0][i].isupper():
+                            return False
+                    return True
+                self.add_unary_potential('v0', capitalized)
+                self.add_unary_potential('v' + str(self.numNgrams-1),
+                                         lambda x: x[self.ngramSize-1] in ['.', '?', '!'])
 
 def main():
     alg = solver.BacktrackingSearch()
     while True:
-	csp = PoemCSP('./tmp', 4, 'Happy')
-	csp.addVariables()
-	csp.addNGramFluencyConstraints()
-	alg.solve(csp, True, True, True)
-	if len(alg.optimalAssignment) > 0:
-	    break
+        csp = PoemCSP('./tmp', 4, 'Happy')
+        csp.addVariables()
+        csp.addNGramFluencyConstraints()
+        alg.solve(csp, True, True, True)
+        if len(alg.optimalAssignment) > 0:
+            break
     poem = ""
     for i in xrange(csp.numNgrams):
-	if i == 0:
-	    for w in alg.optimalAssignment['v' + str(i)]:
-		poem += w + ' '
-	else:
-	    ngram = alg.optimalAssignment['v' + str(i)]
-	    poem += ngram[len(ngram)-1] + ' '
+        if i == 0:
+            for w in alg.optimalAssignment['v' + str(i)]:
+                poem += w + ' '
+        else:
+            ngram = alg.optimalAssignment['v' + str(i)]
+            poem += ngram[len(ngram)-1] + ' '
     words = poem.split()
     length = 0
     i = 0
     while i < len(words):
-	if length == csp.lineLength:
-	    words.insert(i, '\n')
-	    length = 0
-	length += 1
-	i += 1
+        if length == csp.lineLength:
+            words.insert(i, '\n')
+            length = 0
+        length += 1
+        i += 1
     poem = ' '.join(words)
     print ''
     poem = poem.replace(
-	' ?', '?').replace(' !', '!').replace(' .', '.').replace(' ,', ',').replace(
-	' \n?', '?\n').replace('\n!', '!\n').replace('\n.', '.\n').replace(
-	' \n,', ',\n').replace('\n ', '\n').replace(
-	' ?', '?').replace(' !', '!').replace(' .', '.').replace(' ,', ',').replace(
-	' \n?', '?\n').replace('\n!', '!\n').replace('\n.', '.\n').replace(
-	' \n,', ',\n').replace('\n ', '\n')
+        ' ?', '?').replace(' !', '!').replace(' .', '.').replace(' ,', ',').replace(
+        ' \n?', '?\n').replace('\n!', '!\n').replace('\n.', '.\n').replace(
+        ' \n,', ',\n').replace('\n ', '\n').replace(
+        ' ?', '?').replace(' !', '!').replace(' .', '.').replace(' ,', ',').replace(
+        ' \n?', '?\n').replace('\n!', '!\n').replace('\n.', '.\n').replace(
+        ' \n,', ',\n').replace('\n ', '\n')
 
     # rhyming code start
     pos = defaultdict(set)
     for p in csp.poems.values():
-	for w, t in nltk.pos_tag(p.split()):
-	    pos[t].add(w)
+        for w, t in nltk.pos_tag(p.split()):
+            pos[t].add(w)
     lines = poem.split('\n')
     lines = [line.split() for line in lines]
     for i in xrange(0, len(lines), 2):
-	if i + 1 >= len(lines):
-	    break
-	line1 = lines[i]
-	line2 = lines[i+1]
-	if len(line1) == 0 or len(line2) == 0:
-	    break
-	last1 = line1[len(line1)-1]
-	last2 = line2[len(line2)-1]
-	pos1 = nltk.pos_tag([last1])[0][1]
-	pos2 = nltk.pos_tag([last2])[0][1]
-	done = False
-	for otherword in pos[pos1]:
-	    if rhymes(last1, otherword):
-		line2[len(line2)-1] = otherword
-		done = True
-		break
-	if not done:
-	    for otherword in pos[pos2]:
-		if rhymes(last2, otherword):
-		    line1[len(line1)-1] = otherword
-		    break
+        if i + 1 >= len(lines):
+            break
+        line1 = lines[i]
+        line2 = lines[i+1]
+        if len(line1) == 0 or len(line2) == 0:
+            break
+        last1 = line1[len(line1)-1]
+        last2 = line2[len(line2)-1]
+        pos1 = nltk.pos_tag([last1])[0][1]
+        pos2 = nltk.pos_tag([last2])[0][1]
+        done = False
+        for otherword in pos[pos1]:
+            if rhymes(last1, otherword):
+                line2[len(line2)-1] = otherword
+                done = True
+                break
+        if not done:
+            for otherword in pos[pos2]:
+                if rhymes(last2, otherword):
+                    line1[len(line1)-1] = otherword
+                    break
     lines = [' '.join(line) for line in lines]
     poem = '\n'.join(lines)
     print poem
 
 class MarkovPoem():
-	def __init__(self, path, ngram_size, mood):
-		self.ngram_dict = defaultdict(list)
-		self.poems = dict()
-		self.line_lengths = Counter()
-		self.num_lines = Counter()
-		self.ngram_size = ngram_size
-		for poemdir in os.listdir(path):
-			    moods = open(os.path.join(path, poemdir, 'mood')).read().split()
-			    if mood in moods:
-					self.poems[poemdir] = \
-					    open(os.path.join(path, poemdir, 'text')).read().replace(
-					    '?', ' ?').replace('!', ' !').replace('.', ' .').replace(',', ' ,')
-					lines = self.poems[poemdir].split('\n')
-					lines = lines[1:]
-					self.num_lines[len(lines)] += 1
-					for line in lines:
-						words = line.split()
-						if len(words):
-							self.line_lengths[len(words)] += 1
-					self.poems[poemdir] = '\n'.join(lines)
-					words = self.poems[poemdir].split()
-					for i in range(len(words) - ngram_size - 1):
-						key = tuple(words[i:i+ngram_size])
-						value = words[i+ngram_size+1]
-						self.ngram_dict[key].append(value)
+    def __init__(self, path, ngram_size, mood):
+        self.ngram_dict = defaultdict(list)
+        self.poems = dict()
+        self.line_lengths = Counter()
+        self.num_lines = Counter()
+        self.ngram_size = ngram_size
+        for poemdir in os.listdir(path):
+            moods = open(os.path.join(path, poemdir, 'mood')).read().split()
+            if mood in moods:
+                self.poems[poemdir] = \
+                    open(os.path.join(path, poemdir, 'text')).read().replace(
+                    '?', ' ?').replace('!', ' !').replace('.', ' .').replace(',', ' ,')
+                lines = self.poems[poemdir].split('\n')
+                lines = lines[1:]
+                self.num_lines[len(lines)] += 1
+                for line in lines:
+                    words = line.split()
+                    if len(words):
+                        self.line_lengths[len(words)] += 1
+                self.poems[poemdir] = '\n'.join(lines)
+                words = self.poems[poemdir].split()
+                lastN = []
+                for i in xrange(len(words)+self.ngram_size):
+                    lastN.append(words[i % len(words)])
+                    if len(lastN) == self.ngram_size:
+                        self.ngram_dict[tuple(lastN)].append(words[(i+1) % len(words)])
+                        lastN = lastN[1:]
+        print self.ngram_dict
+        print len(self.poems)
 
-	def generate(self, rhyme=False, meter=False):
-		poem = [x for x in random.choice(self.ngram_dict.keys())]
+    def generate(self, rhyme=False, meter=False):
+        poem = [x for x in random.choice([y for y in self.ngram_dict.keys() if y[0][0].isupper()])]
 
-		line_length = random.choice(self.line_lengths.most_common(5))[0]
-		num_lines = random.choice(self.num_lines.most_common(5))[0]
+        line_length = random.choice(self.line_lengths.most_common(5))[0]
+        num_lines = random.choice(self.num_lines.most_common(5))[0]
 
-		for i in xrange(line_length * num_lines):
-			cur_ngram = tuple(poem[:-self.ngram_size])
-			next_word = random.choice(self.ngram_dict[cur_ngram])
-			poem.append(next_word)
+        for i in xrange(line_length * num_lines - 1):
+            cur_ngram = tuple(poem[len(poem)-self.ngram_size:])
+            print cur_ngram
+            next_word = random.choice(self.ngram_dict[cur_ngram])
+            poem.append(next_word)
 
-		return ' '.join(poem)
-
+        retval = ''
+        for i in xrange(len(poem)):
+            retval += poem[i] + ' '
+            if i > 0 and i % line_length == 0:
+                retval += '\n'
+        return retval
 
 def main2():
     mp = MarkovPoem('./tmp', 2, 'Happy')
