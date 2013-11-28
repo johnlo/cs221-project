@@ -225,3 +225,26 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+class MarkovPoem():
+	__init__(path, ngram_size, mood):
+
+		ngram_dict = defaultdict(list)
+
+		self.poems = dict()
+
+		for poemdir in os.listdir(path):
+			    moods = open(os.path.join(path, poemdir, 'mood')).read().split()
+			    if mood in moods:
+				self.poems[poemdir] = \
+				    open(os.path.join(path, poemdir, 'text')).read().replace(
+				    '?', ' ?').replace('!', ' !').replace('.', ' .').replace(',', ' ,')
+
+				last_n_words = []
+				for word in self.poems[poemdir]:
+					last_n_words.append(word)
+					if len(last_n_words) == ngram_size:
+						ngram_dict[tuple()]
+
+				
+
