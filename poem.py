@@ -225,23 +225,22 @@ def main():
 
 class MarkovPoem():
 	def __init__(self, path, ngram_size, mood):
-
-		ngram_dict = defaultdict(list)
-
+		self.ngram_dict = defaultdict(list)
 		self.poems = dict()
-
 		for poemdir in os.listdir(path):
 			    moods = open(os.path.join(path, poemdir, 'mood')).read().split()
 			    if mood in moods:
 				self.poems[poemdir] = \
 				    open(os.path.join(path, poemdir, 'text')).read().replace(
 				    '?', ' ?').replace('!', ' !').replace('.', ' .').replace(',', ' ,')
+                                lines = self.poems[poemdir].split('\n')
+                                lines = lines[1:]
+                                self.poems[poemdir] = '\n'.join(lines)
                                 words = self.poems[poemdir].split()
                                 for i in range(len(words) - ngram_size - 1):
                                     key = tuple(words[i:i+ngram_size])
                                     value = words[i+ngram_size+1]
-                                    ngram_dict[key].append(value)
-                print ngram_dict
+                                    self.ngram_dict[key].append(value)
 
 def main2():
     mp = MarkovPoem('./tmp', 2, 'Happy')
