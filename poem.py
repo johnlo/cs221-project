@@ -157,7 +157,7 @@ class PoemCSP(solver.CSP):
 def main():
     alg = solver.BacktrackingSearch()
     while True:
-	csp = PoemCSP('./tmp', 3, 'Happy')
+	csp = PoemCSP('./tmp', 4, 'Happy')
 	csp.addVariables()
 	csp.addNGramFluencyConstraints()
 	alg.solve(csp, True, True, True)
