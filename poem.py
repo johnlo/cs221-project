@@ -122,15 +122,13 @@ class MarkovPoem():
 	    if mood in moods:
 		self.poems[poemdir] = \
 		    open(os.path.join(path, poemdir, 'text')).read().replace('?', ' ?').replace('!', ' !').replace('.', ' .').replace(',', ' ,')
-		if submood in moods:
-		    print self.poems[poemdir]
 		lines = self.poems[poemdir].split('\n')
 		lines = lines[1:]
 		self.num_lines[len(lines)] += 1
 		for line in lines:
 		    words = line.split()
 		    if len(words):
-			self.line_lengths[len(words)] += 1
+			    self.line_lengths[len(words)] += 1
 		self.poems[poemdir] = '\n'.join(lines)
 		words = self.poems[poemdir].split()
 		lastN = []
@@ -197,7 +195,7 @@ class MarkovPoem():
 	curr_line = []
 	retval = ''
 	for i in xrange(len(self.poem)):
-	    retval += self.poem[i] + ' '
+	    retval += (self.poem[i] + ' ')
 	    curr_line.append(self.poem[i])
 	    if not self.meter:
 		if i > 0 and i % self.line_length == 0:
@@ -206,7 +204,8 @@ class MarkovPoem():
 		if syllables(curr_line) == self.meter:
 		    retval += '\n'
 		    curr_line = []
-	return retval
+	return retval.replace('\n?', '?').replace('\n!', '!').replace('\n.', '.\n').replace('\n,', ',\n').replace('\n  ', '\n') \
+		.replace(' ?', '?').replace(' !', '!').replace(' .', '.').replace(' ,', ',')
 
 def main2():
     mp = MarkovPoem('./tmp', 2, 'Happy')
