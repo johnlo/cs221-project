@@ -117,7 +117,11 @@ class MarkovPoem():
 	self.num_lines = Counter()
 	self.ngram_size = ngram_size
 	self.params = params
+        self.mood = mood
+        self.submood = submood
+        self.mood_seeds = defaultdict(set)
 	for poemdir in os.listdir(path):
+            moods = open(os.path.join(path, poemdir, 'mood')).read().split()
             self.poems[poemdir] = \
                 open(os.path.join(path, poemdir, 'text')).read().replace('?', ' ?').replace('!', ' !').replace('.', ' .').replace(',', ' ,')
             lines = self.poems[poemdir].split('\n')
@@ -134,6 +138,8 @@ class MarkovPoem():
                 lastN.append(words[i % len(words)])
                 if len(lastN) == self.ngram_size:
                     self.ngram_dict[tuple(lastN)].append(words[(i+1) % len(words)])
+                    for mood in moods:
+                        self.mood_seeds[mood].add(tuple(lastN))
                     lastN = lastN[1:]
 	print len(self.poems)
 
@@ -182,13 +188,13 @@ class MarkovPoem():
 
 	self.poem = None
 	while self.poem is None:
-	    seed = [x for x in random.choice([y for y in self.ngram_dict.keys() if y[0][0].isupper()])]
+	    seed = [x for x in random.choice([y for y in self.mood_seeds[self.mood] if y[0][0].isupper()])]
 	    self.chooseNext(seed, 0, seed)
 
 	curr_line = []
 	retval = ''
 	for i in xrange(len(self.poem)):
-	    retval += self.poem[i] + ' '
+	    retval += (self.poem[i] + ' ')
 	    curr_line.append(self.poem[i])
 	    if not self.meter:
 		if i > 0 and i % self.line_length == 0:
@@ -197,7 +203,8 @@ class MarkovPoem():
 		if syllables(curr_line) == self.meter:
 		    retval += '\n'
 		    curr_line = []
-	return retval
+	return retval.replace('\n?', '?').replace('\n!', '!').replace('\n.', '.\n').replace('\n,', ',\n').replace('\n  ', '\n') \
+		.replace(' ?', '?').replace(' !', '!').replace(' .', '.').replace(' ,', ',').replace('\n ', ' \n')
 
 def main2():
     mp = MarkovPoem('./tmp', 2, 'Happy')
