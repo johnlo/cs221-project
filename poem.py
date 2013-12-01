@@ -174,6 +174,9 @@ class MarkovPoem():
 	    if sum(next_word_choices.values()) == 0:
 		next_word = random.choice(next_word_choices.keys())
 	    else:
+                max_value = max(next_word_choices.values())
+                for k in next_word_choices:
+                    next_word_choices[k] += max_value
 		normalize(next_word_choices)
 		next_word = multinomial(Counter(next_word_choices))
 	    tried.append(next_word)
