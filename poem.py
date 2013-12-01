@@ -118,27 +118,23 @@ class MarkovPoem():
 	self.ngram_size = ngram_size
 	self.params = params
 	for poemdir in os.listdir(path):
-	    moods = open(os.path.join(path, poemdir, 'mood')).read().split()
-	    if mood in moods:
-		self.poems[poemdir] = \
-		    open(os.path.join(path, poemdir, 'text')).read().replace('?', ' ?').replace('!', ' !').replace('.', ' .').replace(',', ' ,')
-		if submood in moods:
-		    print self.poems[poemdir]
-		lines = self.poems[poemdir].split('\n')
-		lines = lines[1:]
-		self.num_lines[len(lines)] += 1
-		for line in lines:
-		    words = line.split()
-		    if len(words):
-			self.line_lengths[len(words)] += 1
-		self.poems[poemdir] = '\n'.join(lines)
-		words = self.poems[poemdir].split()
-		lastN = []
-		for i in xrange(len(words)+self.ngram_size):
-		    lastN.append(words[i % len(words)])
-		    if len(lastN) == self.ngram_size:
-			self.ngram_dict[tuple(lastN)].append(words[(i+1) % len(words)])
-			lastN = lastN[1:]
+            self.poems[poemdir] = \
+                open(os.path.join(path, poemdir, 'text')).read().replace('?', ' ?').replace('!', ' !').replace('.', ' .').replace(',', ' ,')
+            lines = self.poems[poemdir].split('\n')
+            lines = lines[1:]
+            self.num_lines[len(lines)] += 1
+            for line in lines:
+                words = line.split()
+                if len(words):
+                    self.line_lengths[len(words)] += 1
+            self.poems[poemdir] = '\n'.join(lines)
+            words = self.poems[poemdir].split()
+            lastN = []
+            for i in xrange(len(words)+self.ngram_size):
+                lastN.append(words[i % len(words)])
+                if len(lastN) == self.ngram_size:
+                    self.ngram_dict[tuple(lastN)].append(words[(i+1) % len(words)])
+                    lastN = lastN[1:]
 	print len(self.poems)
 
     def chooseNext(self, poem, curr_line_number, curr_line):
@@ -172,11 +168,6 @@ class MarkovPoem():
 	    if sum(next_word_choices.values()) == 0:
 		next_word = random.choice(next_word_choices.keys())
 	    else:
-		while float(max(next_word_choices.values())-min(next_word_choices.values()))/max(next_word_choices.values()) > .1:
-		    normalize(next_word_choices)
-		    average = float(sum(next_word_choices.values()))/len(next_word_choices.values())
-		    for k in next_word_choices:
-			next_word_choices[k] += average
 		normalize(next_word_choices)
 		next_word = multinomial(Counter(next_word_choices))
 	    tried.append(next_word)
