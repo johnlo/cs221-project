@@ -1,11 +1,12 @@
-all: generate
+all: install
 
-generate: clean
+install: clean
 	cp -r data/ tmp/
+
+generate: install
 	python main.py generate
 
-classify: clean
-	cp -r data/ tmp/
+classify: install
 	python main.py classify
 
 clean:

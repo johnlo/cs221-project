@@ -3,7 +3,6 @@ import math
 import nltk
 import os
 import random
-import solver
 from collections import Counter
 from collections import defaultdict
 import string, re
@@ -141,10 +140,8 @@ class MarkovPoem():
                     for mood in moods:
                         self.mood_seeds[mood].add(tuple(lastN))
                     lastN = lastN[1:]
-	print len(self.poems)
 
     def chooseNext(self, poem, curr_line_number, curr_line):
-	#print curr_line_number, self.num_lines, self.line_length, len(curr_line), len(poem), curr_line, poem, self.meter, self.rhyme
 	if self.poem:
 	    return
 	if curr_line_number == self.num_lines:
@@ -209,9 +206,5 @@ class MarkovPoem():
 	return retval.replace('\n?', '?').replace('\n!', '!').replace('\n.', '.\n').replace('\n,', ',\n').replace('\n  ', '\n') \
 		.replace(' ?', '?').replace(' !', '!').replace(' .', '.').replace(' ,', ',').replace('\n ', ' \n')
 
-def main2():
-    mp = MarkovPoem('./tmp', 2, 'Happy')
-    print mp.generate()
-
 if __name__ == "__main__":
-    main2()
+    pass
