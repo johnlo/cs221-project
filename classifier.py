@@ -209,7 +209,7 @@ def extractBigramFeatures(x):
     retval = defaultdict(int)
     if x not in cached_rhyme_scores:
         cached_rhyme_scores[x] = getRhymeScore(x)
-    retval['--RHYME--'] = cached_rhyme_scores[x]
+    #retval['--RHYME--'] = cached_rhyme_scores[x]
     words = [word for word in x.split() if word not in stopwords]
     if x in cached_tags:
 	   tagged = cached_tags[x]
@@ -230,7 +230,7 @@ def extractBigramFeatures(x):
 	    else:
 		cached_stems[word] = None
     for tag in tagcount:
-	   retval[tag] = float(tagcount[tag])/len(tagged)
+        retval[tag] = float(tagcount[tag])/len(tagged)
     for i in range(0, len(words)):
 	if (i == 0 or
 	    words[i-1].endswith('.') or
