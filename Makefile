@@ -9,5 +9,8 @@ generate: install
 classify: install
 	python main.py classify
 
+score: install
+	python main.py score
+
 clean:
 	rm -rf *~ tmp/ *.pyc *.stackdump
