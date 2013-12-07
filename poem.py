@@ -203,7 +203,7 @@ class MarkovPoem():
 		if syllables(curr_line) == self.meter:
 		    retval += '\n'
 		    curr_line = []
-	return retval.replace('\n?', '?').replace('\n!', '!').replace('\n.', '.\n').replace('\n,', ',\n').replace('\n  ', '\n') \
+	return retval.replace('\n?', '?\n').replace('\n!', '!\n').replace('\n.', '.\n').replace('\n,', ',\n').replace('\n  ', '\n') \
 		.replace(' ?', '?').replace(' !', '!').replace(' .', '.').replace(' ,', ',').replace('\n ', ' \n')
 
 if __name__ == "__main__":
