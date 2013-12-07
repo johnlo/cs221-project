@@ -188,7 +188,7 @@ class MarkovPoem():
 
 	self.poem = None
 	while self.poem is None:
-	    seed = [x for x in random.choice([y for y in self.mood_seeds[self.submood] if y[0][0].isupper()])]
+	    seed = [x for x in random.choice([y for y in self.mood_seeds[self.mood] if y[0][0].isupper()])]
 	    self.chooseNext(seed, 0, seed)
 
 	curr_line = []
