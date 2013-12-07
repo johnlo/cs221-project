@@ -180,7 +180,7 @@ class MarkovPoem():
 	    self.chooseNext(poem + [next_word], curr_line_number, curr_line + [next_word])
 	    next_word_choices = {w: self.params[w] for w in set(self.ngram_dict[cur_ngram]) if w not in tried}
 
-    def generate(self, rhyme=False, meter=8):
+    def generate(self, rhyme=False, meter=0):
 	self.rhyme = rhyme
 	self.meter = meter
 	self.line_length = random.choice(self.line_lengths.most_common(5))[0]

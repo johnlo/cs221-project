@@ -189,8 +189,8 @@ def score(args):
     j = random.choice(range(len(ALL_MOOD_CLASSES[i+1])))
     while True:
 	id = int(time.time())
-	mood = MAIN_MOODS[i]
-	submood = ALL_MOOD_CLASSES[i+1][j]
+	mood = MAIN_MOODS[i] if args.mood == None else args.mood
+	submood = ALL_MOOD_CLASSES[i+1][j] if args.submood == None else args.submood
 	params = getClassifierParams(classifiers, mood, submood)
 	mp = poem.MarkovPoem(args.path, args.ngramSize, mood, submood, params)
 	generated_poem = mp.generate()
@@ -242,6 +242,10 @@ def main():
     gparser = subparsers.add_parser("score", help = "Repeatedly generate and score poems")
     gparser.add_argument("--ngramSize", type=int, default=3,
 			 help="Value of N to use in N-gram fluency constraints.")
+    gparser.add_argument("--mood", type=str, default='Sad',
+			 help="Mood of the poem to be generated.")
+    gparser.add_argument("--submood", type=str, default='Heartbroken',
+			 help="Mood of the poem to be generated.")
     gparser.set_defaults(func=score)
 
     args = parser.parse_args()
