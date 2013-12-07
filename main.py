@@ -147,10 +147,19 @@ def moodIndex(mood):
 def submoodIndex(mood, submood):
     return list(ALL_MOOD_CLASSES[moodIndex(mood)+1]).index(submood)
 
+def incrementSparseVector(v1, scale, v2):
+    for key in v1.keys():
+        v1[key] += v2[key] * scale
+
 def getClassifierParams(classifiers, mood, submood):
     if not submood:
 	return classifiers[0].getParams(moodIndex(mood))
-    return getClassifierForMainMood(classifiers, mood).getParams(submoodIndex(mood, submood))
+    retval = classifiers[0].getParams(moodIndex(mood))
+    incrementSparseVector(
+        retval, 1,
+        getClassifierForMainMood(classifiers, mood).getParams(
+            submoodIndex(mood, submood)))
+    return retval
 
 def loadClassifiers(path, examples, iters):
     pkl_filename = 'classifiers.pkl'
@@ -224,9 +233,9 @@ def main():
     gparser = subparsers.add_parser("generate", help = "Run generator")
     gparser.add_argument("--ngramSize", type=int, default=3,
 			 help="Value of N to use in N-gram fluency constraints.")
-    gparser.add_argument("--mood", type=str, default='Happy',
+    gparser.add_argument("--mood", type=str, default='Sad',
 			 help="Mood of the poem to be generated.")
-    gparser.add_argument("--submood", type=str, default='Glad',
+    gparser.add_argument("--submood", type=str, default='Heartbroken',
 			 help="Mood of the poem to be generated.")
     gparser.set_defaults(func=generate)
 
