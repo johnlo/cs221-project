@@ -181,7 +181,7 @@ def generate(args):
     classifiers = loadClassifiers(args.path, args.examples, args.iters)
     params = getClassifierParams(classifiers, args.mood, args.submood)
     mp = poem.MarkovPoem(args.path, args.ngramSize, args.mood, args.submood, params)
-    print mp.generate()
+    print mp.generate(args.rhyme, args.meter)
 
 def score(args):
     classifiers = loadClassifiers(args.path, args.examples, args.iters)
@@ -237,16 +237,12 @@ def main():
 			 help="Mood of the poem to be generated.")
     gparser.add_argument("--submood", type=str, default='Heartbroken',
 			 help="Mood of the poem to be generated.")
+    gparser.add_argument("--rhyme", type=bool, default=False,
+                         help="Whether the poem should rhyme.")
+    gparser.add_argument("--meter", type=int, default=0,
+                         help="Meter as defined by number of syllables per " +
+                         "line, where 0 indicates no meter constraint.")
     gparser.set_defaults(func=generate)
-
-    gparser = subparsers.add_parser("score", help = "Repeatedly generate and score poems")
-    gparser.add_argument("--ngramSize", type=int, default=3,
-			 help="Value of N to use in N-gram fluency constraints.")
-    gparser.add_argument("--mood", type=str, default='Sad',
-			 help="Mood of the poem to be generated.")
-    gparser.add_argument("--submood", type=str, default='Heartbroken',
-			 help="Mood of the poem to be generated.")
-    gparser.set_defaults(func=score)
 
     args = parser.parse_args()
     args.func(args)
