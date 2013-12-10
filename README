@@ -1,0 +1,30 @@
+Required modules:
+
+	- nltk (wordnet corpus required)
+	- stemming (follow directions to install: https://pypi.python.org/pypi/stemming/1.0)
+
+In this directory:
+	- main.py parses commands and flags, and kicks off generation or classification
+	- classifier.py contains the classifier implementation
+	- poem.py contains the generation implementation
+	- data/ contains our manually tagged training data. Each poem is stored as a directory containing two text files: one with mood and submood, and one with the full text of the poem.
+	- data.py is our data collection script
+	- generated_poems/ is the set of poems generated during analysis of the poem generation
+	- scores.csv is a CSV containing the scores assigned to each generated poem. The format of each line is <mood>, <submood>, <score>, <id> where id corresponds to a text file for the generated poem in generated_poems/
+	- stopwords.txt is our list of stopwords
+	- classifiers.pkl is pickled data containing our classifier weights to avoid rerunning classification upon each poem generation
+
+Commands:
+
+	- before running any classification or generation commands, run "make install"
+	- to run the classification, run "python main.py --iters=<num iterations> classify"
+	- to generate a poem, run "python main.py generate --ngramSize=<n> --mood=<mood> --submood=<submood>"
+		- to add a meter constraint, add "--meter=<num syllables per line>"
+		- to add a rhyme constraint, add "--rhyme". Runtime for this is usually very high.
+		- substitute <mood> with any of the following moods, and <submood> with any of the corresponding submoods:
+			- Excited - Ecstatic, Energetic, Aroused, Bouncy, Nervous, Perky, Antsy
+			  Tender - Intimate, Loving, Warm-hearted, Sympathetic, Touched, Kind, Soft
+			  Scared - Tense, Nervous, Anxious, Jittery, Frightened, Panic-stricken, Terrified
+			  Angry - Irritated, Resentful, Miffed, Upset, Mad, Furious, Raging
+			  Sad - Down, Blue, Mopey, Grieved, Dejected, Depressed, Heartbroken
+			  Happy - Fulfilled, Contented, Glad, Complete, Satisfied, Optimistic, Pleased
