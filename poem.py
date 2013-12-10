@@ -197,7 +197,7 @@ class MarkovPoem():
 	    retval += (self.poem[i] + ' ')
 	    curr_line.append(self.poem[i])
 	    if not self.meter:
-		if i > 0 and i % self.line_length == 0:
+		if i > 0 and i % self.line_length == self.line_length - 1:
 		    retval += '\n'
 	    else:
 		if syllables(curr_line) == self.meter:
